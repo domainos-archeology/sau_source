@@ -1,0 +1,29 @@
+; looks like this translates from the highmem address back to our loaded address space
+unknown_func1:
+          1002d7a:    4e56 fff8          linkw %fp,#-8
+          1002d7e:    2f02               movel %d2,%sp@-						  		// this looks like this
+          1002d80:    206e 0008          moveal %fp@(8),%a0
+          1002d84:    2010               movel %a0@,%d0							       	       	void* unknown_func1(void* addr) {
+          1002d86:    b0bc 3c40 1400     cmpl #1010832384,%d0    ; if (uint32)0x3c401400 (wired_proc) <= (uint32)%d0        if (addr <= (void*)0x3c401400 && addr > (void*)0x3c400c00) {
+          1002d8c:    6416               bccs 0x1002da4          ;     goto .L16       	       	       	       	       	       	return addr - 0x3c400c00 + 0x1000c00;
+          1002d8e:    b0bc 3c40 0c00     cmpl #1010830336,%d0    ; if (uint32)0x3c400c00 > (uint32)%d0		       	    }
+          1002d94:    650e               bcss 0x1002da4          ;     goto .L16				       	    addr -= 0x3c401400;
+          1002d96:    90bc 3c40 0c00     subl #1010830336,%d0    ; %d0 -= 0x3c400c00				       	    if (addr <= 0x53c00) {
+          1002d9c:    0680 0100 0c00     addil #16780288,%d0     ; %d0 += 0x1000c00				       	        return addr + 0x1004000
+          1002da2:    602e               bras 0x1002dd2          ; goto .L17					       	    }
+.L16:     1002da4:    90bc 3c40 1400     subl #1010832384,%d0    ; %d0 -= 0x3c401400				       	    void* addr2 = *(void**)0x1002020;
+          1002daa:    2200               movel %d0,%d1           ; %d1 = %d0					       	    addr -= 0x53c00;
+          1002dac:    0c81 0005 3c00     cmpil #343040,%d1       ; if (short)0x53c00 > %d1			       	    addr += addr2 << 10
+          1002db2:    6d16               blts 0x1002dca          ;     goto .L18				       	    return addr;
+          1002db4:    2001               movel %d1,%d0           ; %d1 = %d0					       	}
+          1002db6:    2439 0100 2020     movel 0x1002020,%d2     ; %d2 = *0x1002020
+          1002dbc:    0480 0005 3c00     subil #343040,%d0       ; %d0 -= 0x53c00
+          1002dc2:    e18a               lsll #8,%d2             ; %d2 <<= 8
+          1002dc4:    e58a               lsll #2,%d2             ; %d2 <<= 2
+          1002dc6:    d082               addl %d2,%d0            ; %d0 += %d2
+          1002dc8:    6008               bras 0x1002dd2          ; goto .L17
+.L18:     1002dca:    2001               movel %d1,%d0           ; %d0 = %d1
+          1002dcc:    0680 0100 4000     addil #16793600,%d0     ; %d0 += 0x1004000
+.L17:     1002dd2:    242e fff4          movel %fp@(-12),%d2
+          1002dd6:    4e5e               unlk %fp
+          1002dd8:    4e75               rts

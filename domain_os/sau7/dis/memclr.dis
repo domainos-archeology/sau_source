@@ -1,0 +1,14 @@
+; memclr(addr, len)
+memclr:
+          1002d58:    202f 0008          movel %sp@(8),%d0                   ;  transliterated more or less:
+          1002d5c:    222f 0004          movel %sp@(4),%d1                   ;
+          1002d60:    e488               lsrl #2,%d0                         ;  void memclr(void** addr, long len) {
+          1002d62:    2041               moveal %d1,%a0                      ;    long num_longs = len/4;
+          1002d64:    4281               clrl %d1                            ;    for (; num_longs != -1; addr+=4, num_longs--) {
+          1002d66:    2048               moveal %a0,%a0                      ;      *addr = 0;
+          1002d68:    42b0 1800          clrl %a0@(0000000000000000,%d1:l)   ;    }
+          1002d6c:    5380               subql #1,%d0                        ;  }
+          1002d6e:    5881               addql #4,%d1                        ;
+          1002d70:    0c80 ffff ffff     cmpil #-1,%d0                       ;
+          1002d76:    66f0               bnes 0x1002d68                      ;
+          1002d78:    4e75               rts                                 ;

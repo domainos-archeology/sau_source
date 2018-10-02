@@ -1,0 +1,32 @@
+unknown_func3:
+          1002dea:    4e56 ffec          linkw %fp,#-20                ; 
+          1002dee:    48e7 3c00          moveml %d2-%d5,%sp@-
+          1002df2:    382e 0012          movew %fp@(18),%d4
+          1002df6:    262e 000e          movel %fp@(14),%d3
+          1002dfa:    242e 000a          movel %fp@(10),%d2
+          1002dfe:    302e 0008          movew %fp@(8),%d0
+          1002e02:    3200               movew %d0,%d1
+          1002e04:    d244               addw %d4,%d1
+          1002e06:    5341               subqw #1,%d1
+          1002e08:    9240               subw %d0,%d1
+          1002e0a:    6b38               bmis 0x1002e44
+          1002e0c:    3800               movew %d0,%d4
+          1002e0e:    e54c               lslw #2,%d4
+          1002e10:    4285               clrl %d5
+          1002e12:    3a04               movew %d4,%d5
+          1002e14:    0685 0100 1400     addil #16782336,%d5           ; constant = 0x1001400
+          1002e1a:    2045               moveal %d5,%a0
+          1002e1c:    0685 0000 0400     addil #1024,%d5
+          1002e22:    2245               moveal %d5,%a1
+          1002e24:    7af0               moveq #-16,%d5
+          1002e26:    ca82               andl %d2,%d5
+          1002e28:    2085               movel %d5,%a0@
+          1002e2a:    0068 0003 0002     oriw #3,%a0@(2)
+          1002e30:    2283               movel %d3,%a1@
+          1002e32:    0682 0000 0400     addil #1024,%d2
+          1002e38:    0683 0000 0400     addil #1024,%d3
+          1002e3e:    5844               addqw #4,%d4
+          1002e40:    51c9 ffce          dbf %d1,0x1002e10
+          1002e44:    4cee 003c ffdc     moveml %fp@(-36),%d2-%d5
+          1002e4a:    4e5e               unlk %fp
+          1002e4c:    4e75               rts

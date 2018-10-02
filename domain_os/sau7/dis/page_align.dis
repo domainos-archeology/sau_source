@@ -1,0 +1,5 @@
+page_align:
+          1002dda:    202f 0004          movel %sp@(4),%d0							       	void page_align(void* addr) {
+          1002dde:    0680 0000 03ff     addil #1023,%d0    ; %d0 += 0x3ff						    return (addr + 0x3ff) & 0xfffffc00;
+          1002de4:    0240 fc00          andiw #-1024,%d0   ; %d0 &= 0xfffffc00						}
+          1002de8:    4e75               rts

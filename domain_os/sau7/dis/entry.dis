@@ -1,0 +1,289 @@
+; domain_os sau7 disassembly
+;
+; interesting addresses in this file
+;
+; prom?
+;    0x414 - jmp target
+;    0x1160 - byte store target
+;    0x5e800 - byte load target
+;
+; in this image
+;    0x1002000 + {974, 986, 1058, 1038, 1014, etc, etc.}.  looks like 0x100200 + 974 (0x10023ce) is the start of some data block?
+;
+
+; Cache Status/Control Register (0x10200 is dn3500 specific? looks like dn2500 is 0x20200 and everything else is 0x10200?)
+#define NODE_CSR 0x10200
+
+; from mess's src/mess/video/apollo.c:
+
+; monochrome 1280x1024
+#define SCREEN_DEVICE_ID_19I 9
+
+; monochrome 1024x800
+#define SCREEN_DEVICE_ID_15I 11
+
+; 4 plane color 1024x800
+#define SCREEN_DEVICE_ID_C4P 8
+
+; 8 plane color 1024x800
+#define SCREEN_DEVICE_ID_C8P 10
+
+
+load_addr  = 0x1002000
+data_block = 0x10023ce  ; not sure what goes here, but it includes arguments on the stack when we're invoked
+data_block_offset = data_block - load_addr
+
+move_to_ppn:
+       1002020:    .long 0x00004200
+
+; entry assumes there are 4 arguments on the stack - i.e. `entry(arg1, arg2, arg3, arg4)`
+; arg1 (stored to %a1):
+; arg2 (stored to %d2):
+; arg3 (stored to %d1):
+; arg4 (stored to %d0):
+; TODO(toshok) - figure out what these args are supposed to be?  I don't want to disassemble SYSBOOT :(
+entry:
+       1002024:    2a7c 0100 2000     moveal #16785408,%a5        ; %a5 = load_addr
+       100202a:    207c 0000 0000     moveal #0,%a0               ; %a0 = 0
+       1002030:    4e7b 8801          movec %a0,%vbr              ; %vbr = %a0 (the PROM supplies the exception vector table -- assuming it's at address 0)
+       1002034:    4cdf 0007          moveml %sp@+,%d0-%d2        ;  ... loads %d0, %d1, %d2 from stack (arguments from sysboot?)
+       1002038:    225f               moveal %sp@+,%a1            ;  ... loads %a1 from stack (arguments from sysboot?)
+       100203a:    48ed 0006 03ce     moveml %d1-%d2,%a5@(974)    ; *(int32*)(%a5 + data_block_offset) = %d1;  *(int32*)(%a5 + data_block_offset + 4) = %d2;
+       1002040:    4ffa 0bba          lea %pc@(0x1002bfc),%sp     ; %sp = 0x1002bfc (we use a statically sized stack contained within this executable)
+       1002044:    13fc 0000 0001     moveb #0,0x11600            ; *(0x11600) = 0
+       100204a:    1600
+       100204c:    083a 0007 0385     btst #7,%pc@(0x10023d5)     ; if (*0x10023d5 & 0x80)
+       1002052:    6618               bnes 0x100206c              ;     goto .L2 (0x100206c)
+       1002054:    083a 0008 037c     btst #8,%pc@(0x10023d4)     ; if (*0x10023d4 & 0x100)
+       100205a:    661c               bnes 0x1002078              ;     goto .L1 (0x1002078)
+       100205c:    0c6d 0002 03ce     cmpiw #2,%a5@(974)          ; if (*(short*)(%a5 + data_block_offset) == 2)
+       1002062:    6708               beqs 0x100206c              ;     goto .L2 (0x100206c)
+       1002064:    0c6d 0006 03ce     cmpiw #6,%a5@(974)          ; if (*(short*)(%a5 + data_block_offset) == 6)
+       100206a:    6610               bnes 0x100207c              ;     goto .L3 (0x100207c)
+
+.L2:   100206c:    4cd9 007f          moveml %a1@+,%d0-%d6        ; load 7 longs (int32) from *a1 (post incrementing)
+       1002070:    48ed 007f 03da     moveml %d0-%d6,%a5@(986)    ; and store them at %a5[986...992]
+       1002076:    6004               bras 0x100207c              ; goto .L3 (0x100207c)
+
+.L1:   1002078:    2b51 03da          movel %a1@,%a5@(986)
+
+.L3:   100207c:    721f               moveq #31,%d1               ; This is a rather long way to compute this, but
+       100207e:    e228               lsrb %d1,%d0                ; this looks like it's entirely (maybe?):
+       1002080:    42c0               movew %ccr,%d0              ;
+       1002082:    b07c 0004          cmpw #4,%d0                 ; if ((%d0 & 0x40000000) == 0)
+       1002086:    6704               beqs 0x100208c              ;     goto .L4 (0x100208c)
+       1002088:    4ef8 0414          jmp 0x414                   ; goto PROM_ROUTINE_1 (0x414)
+
+.L4:   100208c:    207c 0000 0009     moveal #9,%a0               ; this line and the next clear and turn on instruction cache.
+       1002092:    4e7b 8002          movec %a0,%cacr             ; #9 = 1001 => C=1 CE=0 F=-1 E=1.  C = clear, E = enable
+       1002096:    0838 0003 0103     btst #3,0x102
+       100209c:    56ed 0422          sne %a5@(1058)
+       10020a0:    207c 0100 0c00     moveal #16780288,%a0        ; %a0 = 0x1000c00 (dest_addr)
+       10020a6:    203c 0000 01ff     movel #511,%d0              ; %d0 = 511 (length)
+       10020ac:    227c 0100 3800     moveal #16791552,%a1        ; %a1 = 0x1003800 (source_addr)
+       10020b2:    20d9               movel %a1@+,%a0@+           ; copy 512 bytes from source_addr to dest_addr
+       10020b4:    51c8 fffc          dbf %d0,0x10020b2           ;
+       10020b8:    43f9 0100 1c00     lea 0x1001c00,%a1           ; %a1 = 0x1001c00 (dest_addr)
+       10020be:    22d1               movel %a1@,%a1@+            ; %a1++   cute trick for incrementing a1, but why not just lea the right address at 0x10020b8?  macro expansion maybe?
+       10020c0:    22d1               movel %a1@,%a1@+            ; %a1++
+       10020c2:    41f8 0008          lea 0x8,%a0                 ; %a0 = 0x08 (source_addr)
+       10020c6:    303c 00fd          movew #253,%d0              ; %d0 = 253 (length)
+       10020ca:    22d8               movel %a0@+,%a1@+           ; copy 254 bytes from 0x08... to 0x1001c02...
+       10020cc:    51c8 fffc          dbf %d0,0x10020ca           ; "
+       10020d0:    0cb9 000c 4000     cmpil #802816,0x10003d0     ; if (*0x10003d0 != 0xc4000)
+       10020d6:    0100 03d0                                      ;
+       10020da:    6600 000c          bnew 0x10020e8              ;     goto .L5 (0x10020e8)
+       10020de:    00ad 0000 0008     oril #8,%a5@(1038)          ; %a5[1038] |= 0x08
+       10020e4:    040e                                           ;
+       10020e6:    603c               bras 0x1002124              ; goto .L6 (0x1002124)
+
+.L5:   10020e8:    41f9 0005 e800     lea 0x5e800,%a0             ; %a0 = 0x5e800             graphics.  mess source lists this as "apollo_ccr"
+       10020ee:    0c28 0008 0001     cmpib #8,%a0@(1)            ; if a0[1] == SCREEN_DEVICE_ID_C4P  /* color, 4 plane 1024x800 */
+       10020f4:    672e               beqs 0x1002124              ;     goto .L6 (0x1002124)
+       10020f6:    0c28 000a 0001     cmpib #10,%a0@(1)           ; if a0[1] == SCREEN_DEVICE_ID_C8P  /* color, 8 plane 1024x800 */
+       10020fc:    6726               beqs 0x1002124              ;     goto .L6 (0x1002124)
+       10020fe:    41f9 0005 d800     lea 0x5d800,%a0             ; %a0 = 0x5d800
+       1002104:    0c28 000b 0001     cmpib #11,%a0@(1)           ; if %a0[1] == SCREEN_DEVICE_ID_15I /* mono 1024x800  */
+       100210a:    6710               beqs 0x100211c              ;     goto .L7 (0x100211c)
+       100210c:    0c28 0009 0001     cmpib #9,%a0@(1)            ; if %a0[1] != SCREEN_DEVICE_ID_19I /* mono 1280x1024 */
+       1002112:    6610               bnes 0x1002124              ;     goto .L6 (0x1002124)
+       1002114:    00ad 0000 0010     oril #16,%a5@(1038)         ; 
+       100211a:    040e
+
+.L7:    100211c:    00ad 0000 0001     oril #1,%a5@(1038)
+        1002122:    040e
+
+.L6:    1002124:    23fc 0100 0c00     movel #16780288,0x10003dc  ; *(0x10003dc) = 0x1000c00
+        100212a:    0100 03dc
+        100212e:    45f9 0100 1c00     lea 0x1001c00,%a2
+        1002134:    4e7b a801          movec %a2,%vbr
+        1002138:    2f2a 0008          movel %a2@(8),%sp@-
+        100213c:    2b4f 03f6          movel %sp,%a5@(1014)
+        1002140:    41fa 003a          lea %pc@(0x100217c),%a0    ; %a0 = 0x100217c
+        1002144:    2548 0008          movel %a0,%a2@(8)          ; %a2[8] = %a0
+        1002148:    207c 0100 0000     moveal #16777216,%a0       ; %a0 = 0x1000000
+        100214e:    287c 0200 0000     moveal #33554432,%a4       ; %a4 = 0x2000000
+        1002154:    4aba 02b4          tstl %pc@(0x100240a)
+        1002158:    670a               beqs 0x1002164             ; goto .L8
+        100215a:    b9fa 02ae          cmpal %pc@(0x100240a),%a4
+        100215e:    6304               blss 0x1002164             ; goto .L8
+        1002160:    287a 02a8          moveal %pc@(0x100240a),%a4 ; %a4 = 0x100240a
+
+.L8:     1002164:    d9fc 0100 0000    addal #16777216,%a4       ; %a4 += 0x1000000
+.L11:    100216a:    43e8 0400         lea %a0@(1024),%a1        ; %a1 = %a0 + 1024
+         100216e:    b9c8              cmpal %a0,%a4             ; if %a0 >= %a4
+         1002170:    630e              blss 0x1002180            ;     goto .L9 (0x1002180)
+.L10:    1002172:    2810              movel %a0@,%d4            ; %d4 = *%a0
+         1002174:    20c4              movel %d4,%a0@+           ; *(%a0++) = %d4
+         1002176:    b3c8              cmpal %a0,%a1             ; if %a0 != %a1
+         1002178:    66f8              bnes 0x1002172            ;     goto .L10 (0x1002172)
+         100217a:    60ee              bras 0x100216a            ; goto .L11 (0x100216a)
+         100217c:    2e7a 0278         moveal %pc@(0x10023f6),%sp
+.L9:     1002180:    91fc 0100 0000    subal #16777216,%a0     ; %a0 -= 0x1000000
+         1002186:    2b48 040a         movel %a0,%a5@(1034)
+         100218a:    255f 0008         movel %sp@+,%a2@(8)
+         100218e:    247c 0000 0000    moveal #0,%a2           ; %a2 = 0x00000000
+         1002194:    4e7b a801         movec %a2,%vbr          ; %vbr = %a2
+         1002198:    4a3a 0288         tstb %pc@(0x1002422)    ; if (*0x1002422 == 0)
+         100219c:    672c              beqs 0x10021ca          ;     goto .L13 (0x10021ca)
+         100219e:    13fc 0000 0001    moveb #0,0x10200        ; *(char*)NODE_CSR = 0
+         10021a4:    0200
+         10021a6:    4279 0300 0000    clrw 0x3000000          ; *(short*)0x3000000 = 0
+         10021ac:    3039 0300 0000    movew 0x3000000,%d0     ; %d0 = 0x3000000
+         10021b2:    207c 0400 0000    moveal #67108864,%a0    ; %a0 = 0x4000000
+.L15:    10021b8:    4298              clrl %a0@+              ; *((int32*)%a0++) = 0
+         10021ba:    b1fc 0401 0000    cmpal #67174400,%a0     ; if (%a0 != 0x4010000)
+         10021c0:    66f6              bnes 0x10021b8          ;     goto .L15
+         10021c2:    00ad 0000 0002    oril #2,%a5@(1038)
+         10021c8:    040e
+.L13:    10021ca:    0838 0002 0103    btst #2,0x103           ; if (*0x103 & 0x2)
+         10021d0:    6708              beqs 0x10021da          ;     goto .L14
+         10021d2:    00ad 0000 0004    oril #4,%a5@(1038)      ;
+         10021d8:    040e
+.L14:    10021da:    487a 022a         pea %pc@(0x1002406)    ; call os_$cold_start(data_block, 0x100240a, 0x100240e, 0x1002406)
+         10021de:    487a 022e         pea %pc@(0x100240e)    ; "
+         10021e2:    487a 0226         pea %pc@(0x100240a)    ; "
+         10021e6:    487a 01e6         pea %pc@(0x10023ce)    ; "
+         10021ea:    4eb9 0100 3108    jsr 0x1003108          ; "
+         10021f0:    dffc 0000 000c    addal #12,%sp          ; "  (12?  this only removes 3 of the addresses above from the stack.)
+         10021f6:    4aba 020e         tstl %pc@(0x1002406)   ; if (*0x1002406 == 0)
+         10021fa:    6702              beqs 0x10021fe         ;     goto .L12 (0x10021fe)
+         10021fc:    4e4d              trap #13
+.L12:    10021fe:    6100 00a4         bsrw 0x10022a4
+         1002202:    13fa 021e 3c43    moveb %pc@(0x1002422),0x3c43d954 ; *0x3c43d954 = 0x1002422 (dunno...)
+         1002208:    d954
+         100220a:    33fa 020e 3c42    movew %pc@(0x100241a),0x3c42bb20 ; *0x3c42bb20 = *(short*)cold_remap_csr_cnt
+         1002210:    bb20
+         1002212:    23fa 01fe 3c42    movel %pc@(0x1002412),0x3c42bb18 ; *0x3c42bb20 = *(long*)cold_remap_csr_ppn
+         1002218:    bb18
+         100221a:    33fa 0200 3c42    movew %pc@(0x100241c),0x3c42bb22 ; *0x3c42bb22 = *(short*)cold_remap_frm_cnt
+         1002220:    bb22
+         1002222:    23fa 01f2 3c42    movel %pc@(0x1002416),0x3c42bb1c ; *0x3c42bb1c = *(long*)cold_remap_frm_ppn
+         1002228:    bb1c
+         100222a:    207c 3fff b400    moveal #1073722368,%a0           ; %a0 = 0x3fffb400
+         1002230:    4250              clrw %a0@                        ; *%a0 = 0
+         1002232:    4279 3ffb 0000    clrw 0x3ffb0000                  ; *0x3ffb0000 = 0
+         1002238:    317c ff01 0100    movew #-255,%a0@(256)
+         100223e:    33fc ff01 3c43    movew #-255,0x3c43c960
+         1002244:    c960
+         1002246:    2b4f 03f6         movel %sp,%a5@(1014)
+         100224a:    43fa 0016         lea %pc@(0x1002262),%a1
+         100224e:    23c9 3c40 082c    movel %a1,0x3c40082c
+         1002254:    f23c 9000 0000    fmovel #0,%fpcr
+         100225a:    0000
+         100225c:    50f9 3c4c f362    st 0x3c4cf362
+         1002262:    2e7a 0192         moveal %pc@(0x10023f6),%sp
+         1002266:    0839 0003 3fff    btst #3,0x3fffb600
+         100226c:    b600
+         100226e:    57f9 3c4c f360    seq 0x3c4cf360
+         1002274:    4a39 3c43 d952    tstb 0x3c43d952
+         100227a:    6708              beqs 0x1002284
+         100227c:    41fa 01a0         lea %pc@(0x100241e),%a0
+         1002280:    f010              .short 0xf010
+         1002282:    0800 2e7c         btst #124,%d0
+         1002286:    3c4f              moveaw %sp,%fp
+         1002288:    9c00              subb %d0,%d6
+         100228a:    487a 014e         pea %pc@(0x10023da)
+         100228e:    487a 013e         pea %pc@(0x10023ce)
+         1002292:    207c 3c45 6346    moveal #1011180358,%a0    ; %a0 = os_$init (0x3C456346 in remapped address space)
+         1002298:    083a 000f 0138    btst #15,%pc@(0x10023d4)
+         100229e:    6702              beqs 0x10022a2
+         10022a0:    4e4f              trap #15
+         10022a2:    4e90              jsr %a0@                  ; call os_$init
+         10022a4:    47f9 0001 7000    lea 0x17000,%a3
+         10022aa:    383c 03ff         movew #1023,%d4           ; memset(%a3, 0, 1024)
+         10022ae:    425b              clrw %a3@+                ; "
+         10022b0:    51cc fffc         dbf %d4,0x10022ae         ; "
+
+         10022b4:    227c 0100 17c0    moveal #16783296,%a1      ; memmove(0x10017c0, 0x10007c0, 16)
+         10022ba:    207c 0100 07c0    moveal #16779200,%a0      ; "
+         10022c0:    323c 000f         movew #15,%d1             ; "
+         10022c4:    20d9              movel %a1@+,%a0@+         ; "
+         10022c6:    51c9 fffc         dbf %d1,0x10022c4         ; "
+
+         10022ca:    207c 0100 0400    moveal #16778240,%a0      ; 0x1000400
+         10022d0:    20bc 0100 0413    movel #16778259,%a0@      ; 0x1000413
+         10022d6:    d1fc 0000 0010    addal #16,%a0
+         10022dc:    20fc 001f 0102    movel #2031874,%a0@+      ; 0x1f0102
+         10022e2:    20fc 0100 0420    movel #16778272,%a0@+     ; 0x1000420
+         10022e8:    20fc 001f 0102    movel #2031874,%a0@+      ; 0x1f0102
+         10022ee:    20fc 0100 04a0    movel #16778400,%a0@+     ; 0x10004a0
+         10022f4:    323c 003f         movew #63,%d1
+         10022f8:    7000              moveq #0,%d0
+         10022fa:    80bc 0000 0001    orl #1,%d0
+         1002300:    20c0              movel %d0,%a0@+
+         1002302:    d0bc 0000 0400    addl #1024,%d0
+         1002308:    51c9 fff6         dbf %d1,0x1002300
+
+         100230c:    23fc 00ff 0002    movel #16711682,0x10003d4        ; 0xff0002
+         1002312:    0100 03d4
+         1002316:    23fc 0100 0400    movel #16778240,0x10003d8        ; 0x1000400
+         100231c:    0100 03d8
+         1002320:    41fa 00a4         lea %pc@(0x10023c6),%a0          ; --------------- MMU initialization?
+         1002324:    f010 4c00         pmove %a0@,%crp                  ; install *0x10023c6 (which seems to == 0x00ff0002) as the CPU Root Pointer
+         1002328:    f000 2400         pflusha                          ; flush the address translation cache after updating the CRP?
+         100232c:    0838 0002 0103    btst #2,0x103                    ; why this test?  is this testing 0x103 as translated by the crp?
+         1002332:    6608              bnes 0x100233c                   ; goto .L16
+         1002334:    13fc 0000 0001    moveb #0,0x10200                 ; *(char*)NODE_CSR = 0
+         100233a:    0200
+.L16     100233c:    2b7c 80a2 8750    movel #-2136832176,%a5@(1060)    ; 0x80a28750
+         1002342:    0424
+         1002344:    41fa 00de         lea %pc@(0x1002424),%a0
+         1002348:    f010 4000         pmove %a0@,%tc
+         100234c:    223c 3c40 0800    movel #1010829312,%d1            ; 0x3c400800
+         1002352:    4e7b 1801         movec %d1,%vbr
+         1002356:    2239 3c40 0900    movel 0x3c400900,%d1
+         100235c:    207c 3c40 0800    moveal #1010829312,%a0           ; 0x3c400800
+         1002362:    203c 0000 00ff    movel #255,%d0
+         1002368:    0c90 0001 0000    cmpil #65536,%a0@
+         100236e:    6c06              bges 0x1002376
+         1002370:    0690 3ffa 0000    addil #1073348608,%a0@           ; 0x3ffa0000
+         1002376:    5888              addql #4,%a0
+         1002378:    51c8 ffee         dbf %d0,0x1002368
+         100237c:    23c1 3c40 0900    movel %d1,0x3c400900
+         1002382:    13fc 00ff 3c40    moveb #-1,0x3c400800
+         1002388:    0800
+         100238a:    0839 0002 3c40    btst #2,0x3c400903
+         1002390:    0903
+         1002392:    56f9 3c43 d952    sne 0x3c43d952
+         1002398:    661a              bnes 0x10023b4
+         100239a:    f039 6600 3fff    pmove %pcsr,0x3fffb700
+         10023a0:    b700
+         10023a2:    13fc 0000 3ffb    moveb #0,0x3ffb000e
+         10023a8:    000e
+         10023aa:    13fc 0081 3fff    moveb #-127,0x3fffb600
+         10023b0:    b600
+         10023b2:    6010              bras 0x10023c4
+         10023b4:    4e7a 0002         movec %cacr,%d0    ; %cacr = %cacr & 0xffffc0ff | 0x2900
+         10023b8:    c07c c0ff         andw #-16129,%d0   ; "
+         10023bc:    807c 2900         orw #10496,%d0     ; "
+         10023c0:    4e7b 0002         movec %d0,%cacr    ; "
+         10023c4:    4e75              rts                ; why are we returning? :( :( :(
+
+         10023c6:    .long 0x00ff0002
+         10023ca:    .long 0x01001400
+
+data_block:
+         10023ce:    .long 0x00000000
+         10023d2:    .long 0x00000000
+         ...

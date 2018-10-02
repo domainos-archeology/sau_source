@@ -1,0 +1,183 @@
+unknown_func2:
+          1002e4e:    4e56 ffec          linkw %fp,#-20             ; looks like void unknown_func2(long arg1, long arg2)
+          1002e52:    48e7 3e20          moveml %d2-%d6/%a2,%sp@-
+          1002e56:    242e 000c          movel %fp@(12),%d2         ; %d2 = arg2
+          1002e5a:    262e 0008          movel %fp@(8),%d3          ; %d3 = arg1
+          1002e5e:    2456               moveal %fp@,%a2
+          1002e60:    2043               moveal %d3,%a0
+          1002e62:    2010               movel %a0@,%d0
+          1002e64:    e088               lsrl #8,%d0              ; %d0 >>= 10
+          1002e66:    e488               lsrl #2,%d0
+          1002e68:    2540 fff8          movel %d0,%a2@(-8)
+          1002e6c:    3028 0008          movew %a0@(8),%d0
+          1002e70:    6706               beqs 0x1002e78           ; goto .L18
+          1002e72:    3540 ffaa          movew %d0,%a2@(-86)
+          1002e76:    6030               bras 0x1002ea8           ; goto .L19
+.L18      1002e78:    2f3c 3c5b fc00     movel #1012661248,%sp@-  ; %d0 = call page_align(0x3c5bfc00 /*(OS_PAGE_END / SMAPS_END / RARS)*/)
+          1002e7e:    6100 ff5a          bsrw 0x1002dda           ; 
+          1002e82:    584f               addqw #4,%sp             ;
+          1002e84:    90bc 3c40 1400     subl #1010832384,%d0     ; %d0 -= *0x3c401400 /*(WIRED_PROC / OS_PROC / AST_ / OS_PROC_WIRED / OS_PROC)*/    <- is that deref correct there?  what's subl vs subil?
+          1002e8a:    0480 0005 3c00     subil #343040,%d0        ; %d0 -= 53c00
+          1002e90:    6a06               bpls 0x1002e98           ; goto .L20
+          1002e92:    0680 0000 03ff     addil #1023,%d0          ; %d0 += 0x3FF
+.L20      1002e98:    e080               asrl #8,%d0              ; %d0 >>= 10
+          1002e9a:    e480               asrl #2,%d0              ;
+          1002e9c:    3540 ffaa          movew %d0,%a2@(-86)
+          1002ea0:    2579 0100 2020     movel 0x1002020,%a2@(-8)
+          1002ea6:    fff8
+.L19      1002ea8:    2043               moveal %d3,%a0
+          1002eaa:    2568 0004 ffb4     movel %a0@(4),%a2@(-76)
+          1002eb0:    e9ea 008f ffb4     bfextu %a2@(-76),2,15,%d0
+          1002eb6:    2540 fff4          movel %d0,%a2@(-12)
+          1002eba:    e9ea 0287 ffb4     bfextu %a2@(-76),10,7,%d0
+          1002ec0:    3540 ffac          movew %d0,%a2@(-84)
+          1002ec4:    e9ea 0045 ffb6     bfextu %a2@(-74),1,5,%d0
+          1002eca:    3540 ffae          movew %d0,%a2@(-82)
+          1002ece:    4a28 000a          tstb %a0@(10)
+          1002ed2:    6a00 00fc          bplw 0x1002fd0            ; goto .L21
+          1002ed6:    e9ea 0088 ffb4     bfextu %a2@(-76),2,8,%d0
+          1002edc:    0c40 00f0          cmpiw #240,%d0
+          1002ee0:    6544               bcss 0x1002f26            ; goto .L32
+          1002ee2:    202a fff4          movel %a2@(-12),%d0
+          1002ee6:    227c 3c5b b000     moveal #1012641792,%a1           ; constant = 0x3c5bb000  (SMAPS)
+          1002eec:    0480 0000 7800     subil #30720,%d0                 ; constant = 0x7800
+          1002ef2:    43f1 0720 0800     lea %a1@(0000000000000800,%d0:w:8),%a1
+          1002ef8:    2d49 ffec          movel %a1,%fp@(-20)
+          1002efc:    486e ffec          pea %fp@(-20)
+          1002f00:    6100 fe78          bsrw 0x1002d7a                   ; %d0 = call unknown_func1(%fp@(-20))
+          1002f04:    584f               addqw #4,%sp
+          1002f06:    2540 ffbc          movel %d0,%a2@(-68)
+          1002f0a:    202a fff4          movel %a2@(-12),%d0
+          1002f0e:    227c 3c1c 25a0     moveal #1008477600,%a1           ; constant = 0x3c1c25a0  (no clue)
+          1002f14:    ef88               lsll #7,%d0
+          1002f16:    41f1 0920 8260     lea %a1@(ffffffffffff8260,%d0:l),%a0
+          1002f1c:    2d48 ffec          movel %a0,%fp@(-20)
+          1002f20:    486e ffec          pea %fp@(-20)
+          1002f24:    6032               bras 0x1002f58
+.L32      1002f26:    0caa 0000 0200     cmpil #512,%a2@(-12)
+          1002f2c:    fff4
+          1002f2e:    6600 00a0          bnew 0x1002fd0          ; goto .L21
+          1002f32:    302a ffac          movew %a2@(-84),%d0
+          1002f36:    227c 3c5b b000     moveal #1012641792,%a1           ; constant = 0x3c5bb000  (SMAPS)
+          1002f3c:    43f1 0720 4800     lea %a1@(0000000000004800,%d0:w:8),%a1
+          1002f42:    2d49 ffec          movel %a1,%fp@(-20)
+          1002f46:    486e ffec          pea %fp@(-20)                    ;
+          1002f4a:    6100 fe2e          bsrw 0x1002d7a                   ; call unknown_func1(%fp@(-20))
+          1002f4e:    584f               addqw #4,%sp                     ;
+          1002f50:    2540 ffbc          movel %d0,%a2@(-68)
+          1002f54:    487a 01ae          pea %pc@(0x1003104)
+          1002f58:    6100 fe20          bsrw 0x1002d7a                   ; call unknown_func1
+          1002f5c:    584f               addqw #4,%sp
+          1002f5e:    2540 ffd0          movel %d0,%a2@(-48)
+          1002f62:    203c 3c46 0000     movel #1011220480,%d0            ; constant = 0x3c460000  (.TEXT / OS_PROC_UNWIRED)
+          1002f68:    223c 3c4b f542     movel #1011610946,%d1            ; constant = 0x3c4bf542  (OS_PROC_END)
+          1002f6e:    283c 3c5b ac80     movel #1012640896,%d4            ; constant = 0x3c5bac80  (OS_PMAP_END)
+          1002f74:    206a ffbc          moveal %a2@(-68),%a0
+          1002f78:    4a90               tstl %a0@
+          1002f7a:    6640               bnes 0x1002fbc                   ; goto .L22
+          1002f7c:    206a ffbc          moveal %a2@(-68),%a0
+          1002f80:    7a1f               moveq #31,%d5
+          1002f82:    efd0 504f          bfins %d5,%a0@,1,15
+          1002f86:    0028 00fd 0002     orib #-3,%a0@(2)
+          1002f8c:    7a02               moveq #2,%d5
+          1002f8e:    efe8 5182 0003     bfins %d5,%a0@(3),6,2
+          1002f94:    226a 0010          moveal %a2@(16),%a1
+          1002f98:    2c11               movel %a1@,%d6
+          1002f9a:    0b06               btst %d5,%d6
+          1002f9c:    6606               bnes 0x1002fa4                   ; goto .L23
+          1002f9e:    08e8 0001 0002     bset #1,%a0@(2)
+.L23      1002fa4:    2243               moveal %d3,%a1
+          1002fa6:    0829 0006 000a     btst #6,%a1@(10)
+          1002fac:    57c6               seq %d6
+          1002fae:    ee0e               lsrb #7,%d6
+          1002fb0:    efe8 6141 0003     bfins %d6,%a0@(3),5,1
+          1002fb6:    216a ffd0 0004     movel %a2@(-48),%a0@(4)
+.L22      1002fbc:    3a2a ffae          movew %a2@(-82),%d5
+          1002fc0:    206a ffd0          moveal %a2@(-48),%a0
+          1002fc4:    41f0 5400          lea %a0@(0000000000000000,%d5:w:4),%a0
+          1002fc8:    3a28 0002          movew %a0@(2),%d5
+          1002fcc:    e20d               lsrb #1,%d5
+          1002fce:    640c               bccs 0x1002fdc              ; goto .L24
+.L21      1002fd0:    2242               moveal %d2,%a1
+          1002fd2:    22bc 001b 0007     movel #1769479,%a1@         ; constant = 0x1b0007
+          1002fd8:    6000 0120          braw 0x10030fa              ; goto .L25
+.L24      1002fdc:    2a2a fff8          movel %a2@(-8),%d5
+          1002fe0:    efd0 5016          bfins %d5,%a0@,0,22
+          1002fe4:    08e8 0000 0003     bset #0,%a0@(3)
+          1002fea:    2243               moveal %d3,%a1
+          1002fec:    0829 0001 000a     btst #1,%a1@(10)
+          1002ff2:    6608               bnes 0x1002ffc              ; goto .L26
+          1002ff4:    08e8 0006 0003     bset #6,%a0@(3)
+          1002ffa:    6078               bras 0x1003074              ; goto .L27
+.L26      1002ffc:    4a69 0008          tstw %a1@(8)
+          1003000:    6672               bnes 0x1003074              ; goto .L27
+          1003002:    2a2a ffb4          movel %a2@(-76),%d5
+          1003006:    babc 3c57 a800     cmpl #1012377600,%d5        ; constant = 0x3c57a800  (OS_PMAPS)
+          100300c:    650e               bcss 0x100301c              ; goto .L28
+          100300e:    b8aa ffb4          cmpl %a2@(-76),%d4
+          1003012:    6308               blss 0x100301c              ; goto .L28
+          1003014:    08e8 0006 0003     bset #6,%a0@(3)
+          100301a:    6058               bras 0x1003074              ; goto .L27
+.L28      100301c:    4a2a ffa4          tstb %a2@(-92)
+          1003020:    6a52               bpls 0x1003074              ; goto .L27
+          1003022:    2a2a ffb4          movel %a2@(-76),%d5
+          1003026:    babc 3c40 1400     cmpl #1010832384,%d5        ; if (%d5 >= 0x3c401400  /*(WIRED_PROC / OS_PROC / AST_ / OS_PROC_WIRED / OS_PROC)*/)
+          100302c:    6514               bcss 0x1003042              ;     goto .L29
+          100302e:    2a2a ffb4          movel %a2@(-76),%d5
+          1003032:    babc 3c42 7000     cmpl #1010987008,%d5        ; if (%d5 < 0x3c427000  /*(WIRED_DATA / OS_WIRED_START / OS_$SHUTDOWN_EC / OS_DATA_WIRED)*/)
+          1003038:    6408               bccs 0x1003042              ;     goto .L29
+          100303a:    08e8 0002 0003     bset #2,%a0@(3)
+          1003040:    6032               bras 0x1003074              ; goto .L27
+.L29      1003042:    2a2a ffb4          movel %a2@(-76),%d5
+          1003046:    babc 3c44 e800     cmpl #1011148800,%d5        ; if (%d5 < 0x3c44e800  /*(AST_ / OS_INIT_START / AST_$INIT)*/)
+          100304c:    6514               bcss 0x1003062              ;     goto .L30
+          100304e:    2a2a ffb4          movel %a2@(-76),%d5
+          1003052:    babc 3c45 a000     cmpl #1011195904,%d5        ; if (%d5 >= 0x3c45a000 /*(OS_INIT_DATA / AST_ / OS_INIT_DATA_START)*/)
+          1003058:    6408               bccs 0x1003062              ;     goto .L30
+          100305a:    08e8 0002 0003     bset #2,%a0@(3)
+          1003060:    6012               bras 0x1003074              ; goto .L27
+.L30      1003062:    b0aa ffb4          cmpl %a2@(-76),%d0
+          1003066:    620c               bhis 0x1003074              ; goto .L27
+          1003068:    b2aa ffb4          cmpl %a2@(-76),%d1
+          100306c:    6306               blss 0x1003074              ; goto .L27
+          100306e:    08e8 0002 0003     bset #2,%a0@(3)
+.L27      1003074:    2a2a fff8          movel %a2@(-8),%d5
+          1003078:    baaa ffe8          cmpl %a2@(-24),%d5
+          100307c:    653c               bcss 0x10030ba              ; goto .L31
+          100307e:    2a2a fff8          movel %a2@(-8),%d5
+          1003082:    0485 0000 4000     subil #16384,%d5
+          1003088:    e98d               lsll #4,%d5
+          100308a:    daaa ffd4          addl %a2@(-44),%d5
+          100308e:    2545 fff0          movel %d5,%a2@(-16)
+          1003092:    206a fff0          moveal %a2@(-16),%a0
+          1003096:    0829 0003 000a     btst #3,%a1@(10)
+          100309c:    56c5               sne %d5
+          100309e:    4286               clrl %d6
+          10030a0:    0205 0080          andib #-128,%d5
+          10030a4:    8c05               orb %d5,%d6
+          10030a6:    0210 007f          andib #127,%a0@
+          10030aa:    8d10               orb %d6,%a0@
+          10030ac:    0829 0002 000a     btst #2,%a1@(10)
+          10030b2:    56c6               sne %d6
+          10030b4:    ee0e               lsrb #7,%d6
+          10030b6:    efd0 6041          bfins %d6,%a0@,1,1
+.L31      10030ba:    3a2a ffae          movew %a2@(-82),%d5
+          10030be:    5245               addqw #1,%d5
+          10030c0:    0245 001f          andiw #31,%d5
+          10030c4:    3545 ffae          movew %d5,%a2@(-82)
+          10030c8:    52aa fff8          addql #1,%a2@(-8)
+          10030cc:    06aa 0000 0400     addil #1024,%a2@(-76)
+          10030d2:    ffb4
+          10030d4:    536a ffaa          subqw #1,%a2@(-86)
+          10030d8:    4a6a ffaa          tstw %a2@(-86)
+          10030dc:    6708               beqs 0x10030e6           ; goto .L32
+          10030de:    4a6a ffae          tstw %a2@(-82)
+          10030e2:    6600 fed8          bnew 0x1002fbc           ; goto .L22
+.L32      10030e6:    50aa ffbc          addql #8,%a2@(-68)
+          10030ea:    06aa 0000 0080     addil #128,%a2@(-48)
+          10030f0:    ffd0
+          10030f2:    4a6a ffaa          tstw %a2@(-86)
+          10030f6:    6600 fe7c          bnew 0x1002f74
+.L25      10030fa:    4cee 047c ffd4     moveml %fp@(-44),%d2-%d6/%a2
+          1003100:    4e5e               unlk %fp
+          1003102:    4e75               rts

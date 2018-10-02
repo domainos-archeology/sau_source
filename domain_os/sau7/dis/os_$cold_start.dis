@@ -1,0 +1,259 @@
+; os_$cold_start(data_block, 0x100240a, 0x100240e, 0x1002406) called from entry.dis
+
+os_$cold_start:
+          1003108:    4e56 ff94          linkw %fp,#-108                   ; I'm wearing my big frame pants!
+          100310c:    48e7 3834          moveml %d2-%d4/%a2-%a3/%a5,%sp@-
+          1003110:    4bf9 0100 2bfc     lea 0x1002bfc,%a6
+          1003116:    246e 0014          moveal %fp@(20),%a3
+          100311a:    282e 000c          movel %fp@(12),%d5
+          100311e:    266e 0008          moveal %fp@(8),%a3
+          1003122:    4292               clrl %a2@
+          1003124:    487a 034e          pea %pc@(0x1003474)               ; local44 = call unknown_func1(0x1003474)
+          1003128:    6100 fc50          bsrw 0x1002d7a                    ; "
+          100312c:    584f               addqw #4,%sp                      ; "
+          100312e:    2d40 ffd4          movel %d0,%fp@(-44)               ; "
+          1003132:    487a 0358          pea %pc@(0x100348c)               ; %d2 = call unknown_func1(0x100348c)
+          1003136:    6100 fc42          bsrw 0x1002d7a                    ; "
+          100313a:    584f               addqw #4,%sp                      ; "
+          100313c:    2400               movel %d0,%d2                     ; "
+          100313e:    487a 0348          pea %pc@(0x1003488)               ; %d3 = call unknown_func1(0x1003488)
+          1003142:    6100 fc36          bsrw 0x1002d7a                    ; "
+          1003146:    584f               addqw #4,%sp                      ; "
+          1003148:    2600               movel %d0,%d3                     ; "
+          100314a:    302b 0006          movew %a3@(6),%d0
+          100314e:    0240 8004          andiw #-32764,%d0
+          1003152:    0c40 0004          cmpiw #4,%d0
+          1003156:    57c0               seq %d0
+          1003158:    1d40 ffa4          moveb %d0,%fp@(-92)
+          100315c:    4878 0800          pea 0x800                         ; call memclr(0x1001400, 0x800)
+          1003160:    2f3c 0100 1400     movel #16782336,%sp@-             ; "
+          1003166:    6100 fbf0          bsrw 0x1002d58                    ; "
+          100316a:    504f               addqw #8,%sp                      ; "
+          100316c:    203c 3c5b ac80     movel #1012640896,%d0             ; %d0 = 0x3c5bac80 /*(OS_PMAP_END)*/ - 0x3c57a800 /*(OS_PMAPS)*/
+          1003172:    90bc 3c57 a800     subl #1012377600,%d0              ;
+          1003178:    2f00               movel %d0,%sp@-                   ; call memclr(%d3, %d0)
+          100317a:    2f03               movel %d3,%sp@-                   ; "
+          100317c:    6100 fbda          bsrw 0x1002d58                    ; "
+          1003180:    504f               addqw #8,%sp                      ; "
+          1003182:    2f3c 3c5b fc00     movel #1012661248,%sp@-           ; %d0 = call page_align(0x3c5bfc00) - 0x3c5bb000
+          1003188:    6100 fc50          bsrw 0x1002dda                    ; "
+          100318c:    584f               addqw #4,%sp                      ; "
+          100318e:    90bc 3c5b b000     subl #1012641792,%d0              ; "
+          1003194:    2f00               movel %d0,%sp@-                   ; call memclr(%d2, %d0)
+          1003196:    2f02               movel %d2,%sp@-                   ; "
+          1003198:    6100 fbbe          bsrw 0x1002d58                    ; "
+          100319c:    504f               addqw #8,%sp                      ; "
+          100319e:    2f3c 0008 0000     movel #524288,%sp@-               ; call memclr(local44, 0x80000)
+          10031a4:    2f2e ffd4          movel %fp@(-44),%sp@-             ; "
+          10031a8:    6100 fbae          bsrw 0x1002d58                    ; "
+          10031ac:    504f               addqw #8,%sp                      ; "
+          10031ae:    206e ffd4          moveal %fp@(-44),%a0
+          10031b2:    2d7c 0000 4000     movel #16384,%fp@(-24)
+          10031b8:    ffe8
+          10031ba:    2244               moveal %d4,%a1
+          10031bc:    2011               movel %a1@,%d0
+          10031be:    e088               lsrl #8,%d0
+          10031c0:    e488               lsrl #2,%d0
+          10031c2:    d0ae ffe8          addl %fp@(-24),%d0
+          10031c6:    5380               subql #1,%d0
+          10031c8:    b0ae ffe8          cmpl %fp@(-24),%d0
+          10031cc:    6526               bcss 0x10031f4
+          10031ce:    90ae ffe8          subl %fp@(-24),%d0
+          10031d2:    2d6e ffe8 fff8     movel %fp@(-24),%fp@(-8)
+          10031d8:    222e fff8          movel %fp@(-8),%d1
+          10031dc:    e989               lsll #4,%d1
+          10031de:    43f0 1800          lea %a0@(0000000000000000,%d1:l),%a1
+          10031e2:    08f1 0006 0170     bset #6,%a1@(fffffffffffc0000)
+          10031e8:    fffc 0000
+          10031ec:    52ae fff8          addql #1,%fp@(-8)
+          10031f0:    5380               subql #1,%d0
+          10031f2:    64e4               bccs 0x10031d8
+          10031f4:    780f               moveq #15,%d4
+          10031f6:    47ed 000c          lea %a5@(12),%a3
+          10031fa:    2048               moveal %a0,%a0
+          10031fc:    4852               pea %a2@
+          10031fe:    486b 0090          pea %a3@(144)
+          1003202:    6100 fc4a          bsrw 0x1002e4e                         ; %d0 = call unknown_func2((%a3+144),%a2)
+          1003206:    504f               addqw #8,%sp                           ;
+          1003208:    4a92               tstl %a2@
+          100320a:    6600 025c          bnew 0x1003468
+          100320e:    47eb 000c          lea %a3@(12),%a3
+          1003212:    51cc ffe8          dbf %d4,0x10031fc
+          1003216:    206e 0010          moveal %fp@(16),%a0
+          100321a:    2010               movel %a0@,%d0
+          100321c:    0800 0001          btst #1,%d0
+          1003220:    6722               beqs 0x1003244
+          1003222:    4244               clrw %d4
+          1003224:    47ed 000c          lea %a5@(12),%a3
+          1003228:    4852               pea %a2@
+          100322a:    486b fff4          pea %a3@(-12)
+          100322e:    6100 fc1e          bsrw 0x1002e4e                         ; %d0 = call unknown_func2((%a3-12), %a2)
+          1003232:    504f               addqw #8,%sp                           ;
+          1003234:    4a92               tstl %a2@
+          1003236:    6600 0230          bnew 0x1003468
+          100323a:    47eb 000c          lea %a3@(12),%a3
+          100323e:    51cc ffe8          dbf %d4,0x1003228
+          1003242:    6020               bras 0x1003264
+          1003244:    4244               clrw %d4
+          1003246:    47ed 000c          lea %a5@(12),%a3
+          100324a:    2048               moveal %a0,%a0
+          100324c:    4852               pea %a2@
+          100324e:    4853               pea %a3@
+          1003250:    6100 fbfc          bsrw 0x1002e4e                         ; %d0 = call unknown_func2(%a3, %a2)
+          1003254:    504f               addqw #8,%sp                           ;
+          1003256:    4a92               tstl %a2@
+          1003258:    6600 020e          bnew 0x1003468
+          100325c:    47eb 000c          lea %a3@(12),%a3
+          1003260:    51cc ffea          dbf %d4,0x100324c
+          1003264:    206e 0010          moveal %fp@(16),%a0
+          1003268:    2010               movel %a0@,%d0
+          100326a:    0800 0003          btst #3,%d0
+          100326e:    6726               beqs 0x1003296
+          1003270:    7804               moveq #4,%d4
+          1003272:    47ed 000c          lea %a5@(12),%a3
+          1003276:    2048               moveal %a0,%a0
+          1003278:    4852               pea %a2@
+          100327a:    486b 0054          pea %a3@(84)
+          100327e:    6100 fbce          bsrw 0x1002e4e                         ; %d0 = call unknown_func2(%a3+84, %a2)
+          1003282:    504f               addqw #8,%sp                           ;
+          1003284:    4a92               tstl %a2@
+          1003286:    6600 01e0          bnew 0x1003468
+          100328a:    47eb 000c          lea %a3@(12),%a3
+          100328e:    51cc ffe8          dbf %d4,0x1003278
+          1003292:    6000 0102          braw 0x1003396
+          1003296:    206e 0010          moveal %fp@(16),%a0
+          100329a:    2010               movel %a0@,%d0
+          100329c:    e208               lsrb #1,%d0
+          100329e:    6552               bcss 0x10032f2
+          10032a0:    7801               moveq #1,%d4
+          10032a2:    47ed 000c          lea %a5@(12),%a3
+          10032a6:    2048               moveal %a0,%a0
+          10032a8:    4852               pea %a2@
+          10032aa:    486b 000c          pea %a3@(12)
+          10032ae:    6100 fb9e          bsrw 0x1002e4e                         ; %d0 = call unknown_func2
+          10032b2:    504f               addqw #8,%sp
+          10032b4:    4a92               tstl %a2@
+          10032b6:    6600 01b0          bnew 0x1003468
+          10032ba:    47eb 000c          lea %a3@(12),%a3
+          10032be:    51cc ffe8          dbf %d4,0x10032a8
+          10032c2:    202d 0018          movel %a5@(24),%d0
+          10032c6:    e088               lsrl #8,%d0
+          10032c8:    e488               lsrl #2,%d0
+          10032ca:    23c0 0100 2412     movel %d0,0x1002412
+          10032d0:    33ed 0020 0100     movew %a5@(32),0x100241a
+          10032d6:    241a
+          10032d8:    202d 0024          movel %a5@(36),%d0
+          10032dc:    e088               lsrl #8,%d0
+          10032de:    e488               lsrl #2,%d0
+          10032e0:    23c0 0100 2416     movel %d0,0x1002416
+          10032e6:    33ed 002c 0100     movew %a5@(44),0x100241c
+          10032ec:    241c
+          10032ee:    6000 00a6          braw 0x1003396
+          10032f2:    2010               movel %a0@,%d0
+          10032f4:    0800 0004          btst #4,%d0
+          10032f8:    674e               beqs 0x1003348
+          10032fa:    7801               moveq #1,%d4
+          10032fc:    47ed 000c          lea %a5@(12),%a3
+          1003300:    4852               pea %a2@
+          1003302:    486b 003c          pea %a3@(60)
+          1003306:    6100 fb46          bsrw 0x1002e4e                         ; %d0 = call unknown_func2
+          100330a:    504f               addqw #8,%sp
+          100330c:    4a92               tstl %a2@
+          100330e:    6600 0158          bnew 0x1003468
+          1003312:    47eb 000c          lea %a3@(12),%a3
+          1003316:    51cc ffe8          dbf %d4,0x1003300
+          100331a:    202d 0048          movel %a5@(72),%d0
+          100331e:    e088               lsrl #8,%d0
+          1003320:    e488               lsrl #2,%d0
+          1003322:    23c0 0100 2412     movel %d0,0x1002412
+          1003328:    33ed 0050 0100     movew %a5@(80),0x100241a
+          100332e:    241a
+          1003330:    202d 0054          movel %a5@(84),%d0
+          1003334:    e088               lsrl #8,%d0
+          1003336:    e488               lsrl #2,%d0
+          1003338:    23c0 0100 2416     movel %d0,0x1002416
+          100333e:    33ed 005c 0100     movew %a5@(92),0x100241c
+          1003344:    241c
+          1003346:    604e               bras 0x1003396
+          1003348:    7801               moveq #1,%d4
+          100334a:    47ed 000c          lea %a5@(12),%a3
+          100334e:    2048               moveal %a0,%a0
+          1003350:    4852               pea %a2@
+          1003352:    486b 0024          pea %a3@(36)
+          1003356:    6100 faf6          bsrw 0x1002e4e                         ; %d0 = call unknown_func2(*(a3+36), *%a2)
+          100335a:    504f               addqw #8,%sp                           ;
+          100335c:    4a92               tstl %a2@
+          100335e:    6600 0108          bnew 0x1003468
+          1003362:    47eb 000c          lea %a3@(12),%a3
+          1003366:    51cc ffe8          dbf %d4,0x1003350
+          100336a:    202d 0030          movel %a5@(48),%d0
+          100336e:    e088               lsrl #8,%d0
+          1003370:    e488               lsrl #2,%d0
+          1003372:    23c0 0100 2412     movel %d0,0x1002412
+          1003378:    33ed 0038 0100     movew %a5@(56),0x100241a
+          100337e:    241a
+          1003380:    202d 003c          movel %a5@(60),%d0
+          1003384:    e088               lsrl #8,%d0
+          1003386:    e488               lsrl #2,%d0
+          1003388:    23c0 0100 2416     movel %d0,0x1002416
+          100338e:    33ed 0044 0100     movew %a5@(68),0x100241c
+          1003394:    241c
+          1003396:    47f9 3c5b b800     lea 0x3c5bb800,%a3
+          100339c:    2d4b ff94          movel %a3,%fp@(-108)
+          10033a0:    486e ff94          pea %fp@(-108)
+          10033a4:    6100 f9d4          bsrw 0x1002d7a                   ; call unknown_func1
+          10033a8:    584f               addqw #4,%sp
+          10033aa:    2d40 ffc0          movel %d0,%fp@(-64)
+          10033ae:    47f9 3c5b b800     lea 0x3c5bb800,%a3
+          10033b4:    2d4b ffc8          movel %a3,%fp@(-56)
+          10033b8:    2d7c 0100 2000     movel #16785408,%fp@(-76)
+          10033be:    ffb4
+          10033c0:    41f9 3c5b f800     lea 0x3c5bf800,%a0
+          10033c6:    2d48 ff94          movel %a0,%fp@(-108)
+          10033ca:    486e ff94          pea %fp@(-108)
+          10033ce:    6100 f9aa          bsrw 0x1002d7a                   ; call unknown_func1
+          10033d2:    584f               addqw #4,%sp                     ;
+          10033d4:    2d40 ffc4          movel %d0,%fp@(-60)
+          10033d8:    41f9 3c5b f800     lea 0x3c5bf800,%a0
+          10033de:    2d48 ffcc          movel %a0,%fp@(-52)
+          10033e2:    3f3c 0001          movew #1,%sp@-
+          10033e6:    4850               pea %a0@
+          10033e8:    2f00               movel %d0,%sp@-
+          10033ea:    e9ee 1088 ffb4     bfextu %fp@(-76),2,8,%d1
+          10033f0:    3f01               movew %d1,%sp@-
+          10033f2:    6100 f9f6          bsrw 0x1002dea                     ; call unknown_func3
+          10033f6:    4fef 000c          lea %sp@(12),%sp
+          10033fa:    3f3c 0002          movew #2,%sp@-
+          10033fe:    2f3c 3c5b b000     movel #1012641792,%sp@-
+          1003404:    2f02               movel %d2,%sp@-
+          1003406:    3f3c 00ed          movew #237,%sp@-
+          100340a:    6100 f9de          bsrw 0x1002dea                     ; call unknown_func3((short)237, %d2, 0x3c5bb000, (short)2)
+          100340e:    4fef 000c          lea %sp@(12),%sp
+          1003412:    3f3c 0010          movew #16,%sp@-
+          1003416:    2f2e ffc8          movel %fp@(-56),%sp@-
+          100341a:    2f2e ffc0          movel %fp@(-64),%sp@-
+          100341e:    3f3c 00f0          movew #240,%sp@-
+          1003422:    6100 f9c6          bsrw 0x1002dea                     ; call unknown_func3((short)240, %fp@(-64), %fp@(-56), (short)16)
+          1003426:    4fef 000c          lea %sp@(12),%sp
+          100342a:    487a 0058          pea %pc@(0x1003484)              ; call unknown_func1(0x1003484)
+          100342e:    6100 f94a          bsrw 0x1002d7a                   ; "
+          1003432:    584f               addqw #4,%sp                     ; "
+          1003434:    2040               moveal %d0,%a0                   ;
+          1003436:    20bc 0100 1400     movel #16782336,%a0@             ; *(%a0) = 0x1001400
+          100343c:    487a 0042          pea %pc@(0x1003480)              ; call unknown_func1(0x1003480)
+          1003440:    6100 f938          bsrw 0x1002d7a                   ; "
+          1003444:    584f               addqw #4,%sp                     ; "
+          1003446:    2040               moveal %d0,%a0                   ;
+          1003448:    2083               movel %d3,%a0@                   ; *(%a0) = %d3
+          100344a:    487a 0030          pea %pc@(0x100347c)              ; %d0 = call unknown_func1 
+          100344e:    6100 f92a          bsrw 0x1002d7a                   ; "
+          1003452:    584f               addqw #4,%sp                     ; "
+          1003454:    2040               moveal %d0,%a0                   ;
+          1003456:    2082               movel %d2,%a0@                   ; *(%a0) = %d2
+          1003458:    487a 001e          pea %pc@(0x1003478)              ; %d0 = call unknown_func1(0x1003478)
+          100345c:    6100 f91c          bsrw 0x1002d7a                   ; "
+          1003460:    2040               moveal %d0,%a0                   ; 
+          1003462:    20bc 0100 1400     movel #16782336,%a0@             ; *(%a0) = 0x1001400
+          1003468:    4cee 2c1c ff7c     moveml %fp@(-132),%d2-%d4/%a2-%a3/%a5
+          100346e:    4e5e               unlk %fp
+          1003470:    4e75               rts
